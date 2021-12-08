@@ -31,52 +31,20 @@ func (p *ProcessoTransacao) Executar(entrada EntradaTransacaoDTO) (SaidaTransaca
 	)
 
 	if ccInvalido != nil {
-		err := p.repositorio.Inserir(
-			transacao.ID,
-			transacao.ContaID,
-			transacao.Valor,
-			entidade.REJEITADO,
-			ccInvalido.Error(),
-		)
-
-		if err != nil {
-			return SaidaTransacaoDTO{}, err
-		}
-
-		saida := SaidaTransacaoDTO{
-			ID:           transacao.ID,
-			Status:       entidade.REJEITADO,
-			MensagemErro: ccInvalido.Error(),
-		}
-
-		return saida, nil
+		return p.transacaoRejeitada(transacao, ccInvalido)
 	}
 
 	transacao.AdicionarCartaoCredito(*cc)
 	transacaoInvalida := transacao.Valida()
 
 	if transacaoInvalida != nil {
-		err := p.repositorio.Inserir(
-			transacao.ID,
-			transacao.ContaID,
-			transacao.Valor,
-			entidade.REJEITADO,
-			transacaoInvalida.Error(),
-		)
-
-		if err != nil {
-			return SaidaTransacaoDTO{}, err
-		}
-
-		saida := SaidaTransacaoDTO{
-			ID:           transacao.ID,
-			Status:       entidade.REJEITADO,
-			MensagemErro: transacaoInvalida.Error(),
-		}
-
-		return saida, nil
+		return p.transacaoRejeitada(transacao, transacaoInvalida)
 	}
 
+	return p.transacaoAprovada(entrada, transacao)
+}
+
+func (p *ProcessoTransacao) transacaoAprovada(entrada EntradaTransacaoDTO, transacao *entidade.Transacao) (SaidaTransacaoDTO, error) {
 	err := p.repositorio.Inserir(
 		transacao.ID,
 		transacao.ContaID,
@@ -93,6 +61,28 @@ func (p *ProcessoTransacao) Executar(entrada EntradaTransacaoDTO) (SaidaTransaca
 		ID:           transacao.ID,
 		Status:       entidade.APROVADO,
 		MensagemErro: "",
+	}
+
+	return saida, nil
+}
+
+func (p *ProcessoTransacao) transacaoRejeitada(transacao *entidade.Transacao, transacaoInvalida error) (SaidaTransacaoDTO, error) {
+	err := p.repositorio.Inserir(
+		transacao.ID,
+		transacao.ContaID,
+		transacao.Valor,
+		entidade.REJEITADO,
+		transacaoInvalida.Error(),
+	)
+
+	if err != nil {
+		return SaidaTransacaoDTO{}, err
+	}
+
+	saida := SaidaTransacaoDTO{
+		ID:           transacao.ID,
+		Status:       entidade.REJEITADO,
+		MensagemErro: transacaoInvalida.Error(),
 	}
 
 	return saida, nil
