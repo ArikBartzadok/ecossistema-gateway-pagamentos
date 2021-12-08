@@ -7,20 +7,20 @@ import (
 )
 
 type CartaoCredito struct {
-	numero       string
-	nome         string
-	mesExpiracao int
-	anoExpiracao int
-	cvv          int
+	Numero       string
+	Nome         string
+	MesExpiracao int
+	AnoExpiracao int
+	Cvv          int
 }
 
 func NovoCartaoCredito(numero string, nome string, mesExpiracao int, anoExpiracao int, cvvExpiracao int) (*CartaoCredito, error) {
 	cc := &CartaoCredito{
-		numero:       numero,
-		nome:         nome,
-		mesExpiracao: mesExpiracao,
-		anoExpiracao: anoExpiracao,
-		cvv:          cvvExpiracao,
+		Numero:       numero,
+		Nome:         nome,
+		MesExpiracao: mesExpiracao,
+		AnoExpiracao: anoExpiracao,
+		Cvv:          cvvExpiracao,
 	}
 
 	erro := cc.Valido()
@@ -55,7 +55,7 @@ func (c *CartaoCredito) Valido() error {
 func (c *CartaoCredito) validarNumero() error {
 	regexValidacao := regexp.MustCompile(`^(?:4[0-9]{12}(?:[0-9]{3})?|[25][1-7][0-9]{14}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11})$`)
 
-	if !regexValidacao.MatchString(c.numero) {
+	if !regexValidacao.MatchString(c.Numero) {
 		return errors.New("Número do cartão de crédito inválido")
 	}
 	return nil
@@ -63,7 +63,7 @@ func (c *CartaoCredito) validarNumero() error {
 
 // se válido, retorna nil, caso contrário, retorna o erro lançado
 func (c *CartaoCredito) validarMes() error {
-	if c.mesExpiracao > 0 && c.mesExpiracao < 13 {
+	if c.MesExpiracao > 0 && c.MesExpiracao < 13 {
 		return nil
 	}
 	return errors.New("Mês de expiração do cartão de crédito inválido")
@@ -71,7 +71,7 @@ func (c *CartaoCredito) validarMes() error {
 
 // se válido, retorna nil, caso contrário, retorna o erro lançado
 func (c *CartaoCredito) validarAno() error {
-	if c.anoExpiracao >= time.Now().Year() {
+	if c.AnoExpiracao >= time.Now().Year() {
 		return nil
 	}
 

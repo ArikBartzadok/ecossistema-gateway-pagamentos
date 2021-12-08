@@ -9,8 +9,8 @@ import (
 func TesteTransacaoValida(t *testing.T) {
 	transacao := NovaTransacao()
 	transacao.ID = "1"
-	transacao.contaID = "1"
-	transacao.valor = 900
+	transacao.ContaID = "1"
+	transacao.Valor = 900
 
 	assert.Nil(t, transacao.Valida())
 }
@@ -18,8 +18,8 @@ func TesteTransacaoValida(t *testing.T) {
 func TesteTransacaoMaiorQue1000Invalida(t *testing.T) {
 	transacao := NovaTransacao()
 	transacao.ID = "1"
-	transacao.contaID = "1"
-	transacao.valor = 1001
+	transacao.ContaID = "1"
+	transacao.Valor = 1001
 
 	erro := transacao.Valida()
 
@@ -30,8 +30,8 @@ func TesteTransacaoMaiorQue1000Invalida(t *testing.T) {
 func TesteTransacaoMenorQue1Invalida(t *testing.T) {
 	transacao := NovaTransacao()
 	transacao.ID = "1"
-	transacao.contaID = "1"
-	transacao.valor = 0
+	transacao.ContaID = "1"
+	transacao.Valor = 0
 
 	erro := transacao.Valida()
 
