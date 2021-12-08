@@ -32,6 +32,6 @@ func (t *Transacao) Valida() error {
 	return nil
 }
 
-func (t *Transacao) adicionarCartaoCredito(cartao CartaoCredito) {
+func (t *Transacao) AdicionarCartaoCredito(cartao CartaoCredito) {
 	t.CartaoCredito = cartao
 }

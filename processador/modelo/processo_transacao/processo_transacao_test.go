@@ -48,3 +48,79 @@ func TesteProcessoTransacao_CartaoCreditoInvalido(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, saida_esperada, saida)
 }
+
+func TesteProcessoTransacao_ExecutandoTransacaoRejeitada(t *testing.T) {
+	entrada := EntradaTransacaoDTO{
+		ID:                        "1",
+		ContaID:                   "1",
+		NumeroCartaoCredito:       "5555341244441115",
+		NomeCartaoCredito:         "Diogo Ferreira",
+		MesExpiracaoCartaoCredito: 12,
+		AnoExpiracaoCartaoCredito: time.Now().Year(),
+		CvvCartaoCredito:          123,
+		Valor:                     1200,
+	}
+	saida_esperada := SaidaTransacaoDTO{
+		ID:           "1",
+		Status:       entidade.REJEITADO,
+		MensagemErro: "Você não possui limite para essa transação",
+	}
+
+	controlador := gomock.NewController(t)
+	defer controlador.Finish()
+
+	repositorio_mock := mock_repositorio.NewMockRepositorioTransacao(controlador)
+	repositorio_mock.EXPECT().
+		Inserir(
+			entrada.ID,
+			entrada.ContaID,
+			entrada.Valor,
+			saida_esperada.Status,
+			saida_esperada.MensagemErro,
+		).
+		Return(nil)
+
+	caso_uso := NovoProcessoTransacao(repositorio_mock)
+	saida, err := caso_uso.Executar(entrada)
+
+	assert.Nil(t, err)
+	assert.Equal(t, saida_esperada, saida)
+}
+
+func TesteProcessoTransacao_ExecutandoTransacaoAprovada(t *testing.T) {
+	entrada := EntradaTransacaoDTO{
+		ID:                        "1",
+		ContaID:                   "1",
+		NumeroCartaoCredito:       "5555341244441115",
+		NomeCartaoCredito:         "Diogo Ferreira",
+		MesExpiracaoCartaoCredito: 12,
+		AnoExpiracaoCartaoCredito: time.Now().Year(),
+		CvvCartaoCredito:          123,
+		Valor:                     900,
+	}
+	saida_esperada := SaidaTransacaoDTO{
+		ID:           "1",
+		Status:       entidade.APROVADO,
+		MensagemErro: "",
+	}
+
+	controlador := gomock.NewController(t)
+	defer controlador.Finish()
+
+	repositorio_mock := mock_repositorio.NewMockRepositorioTransacao(controlador)
+	repositorio_mock.EXPECT().
+		Inserir(
+			entrada.ID,
+			entrada.ContaID,
+			entrada.Valor,
+			saida_esperada.Status,
+			saida_esperada.MensagemErro,
+		).
+		Return(nil)
+
+	caso_uso := NovoProcessoTransacao(repositorio_mock)
+	saida, err := caso_uso.Executar(entrada)
+
+	assert.Nil(t, err)
+	assert.Equal(t, saida_esperada, saida)
+}

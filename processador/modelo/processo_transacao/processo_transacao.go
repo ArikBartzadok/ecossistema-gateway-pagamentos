@@ -22,7 +22,7 @@ func (p *ProcessoTransacao) Executar(entrada EntradaTransacaoDTO) (SaidaTransaca
 	transacao.ContaID = entrada.ContaID
 	transacao.Valor = entrada.Valor
 
-	_, ccInvalido := entidade.NovoCartaoCredito(
+	cc, ccInvalido := entidade.NovoCartaoCredito(
 		entrada.NumeroCartaoCredito,
 		entrada.NomeCartaoCredito,
 		entrada.MesExpiracaoCartaoCredito,
@@ -52,6 +52,48 @@ func (p *ProcessoTransacao) Executar(entrada EntradaTransacaoDTO) (SaidaTransaca
 		return saida, nil
 	}
 
-	return SaidaTransacaoDTO{}, nil
+	transacao.AdicionarCartaoCredito(*cc)
+	transacaoInvalida := transacao.Valida()
 
+	if transacaoInvalida != nil {
+		err := p.repositorio.Inserir(
+			transacao.ID,
+			transacao.ContaID,
+			transacao.Valor,
+			entidade.REJEITADO,
+			transacaoInvalida.Error(),
+		)
+
+		if err != nil {
+			return SaidaTransacaoDTO{}, err
+		}
+
+		saida := SaidaTransacaoDTO{
+			ID:           transacao.ID,
+			Status:       entidade.REJEITADO,
+			MensagemErro: transacaoInvalida.Error(),
+		}
+
+		return saida, nil
+	}
+
+	err := p.repositorio.Inserir(
+		transacao.ID,
+		transacao.ContaID,
+		transacao.Valor,
+		entidade.APROVADO,
+		"",
+	)
+
+	if err != nil {
+		return SaidaTransacaoDTO{}, err
+	}
+
+	saida := SaidaTransacaoDTO{
+		ID:           transacao.ID,
+		Status:       entidade.APROVADO,
+		MensagemErro: "",
+	}
+
+	return saida, nil
 }
