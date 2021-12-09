@@ -1,17 +1,22 @@
 package processo_transacao
 
 import (
+	"github.com/ArikBartzadok/ecossistema-gateway-pagamentos/adaptador/broker"
 	"github.com/ArikBartzadok/ecossistema-gateway-pagamentos/dominio/entidade"
 	"github.com/ArikBartzadok/ecossistema-gateway-pagamentos/dominio/repositorio"
 )
 
 type ProcessoTransacao struct {
 	repositorio repositorio.RepositorioTransacao
+	Produtor    broker.InterfaceProdutor
+	Topico      string
 }
 
-func NovoProcessoTransacao(repositorio repositorio.RepositorioTransacao) *ProcessoTransacao {
+func NovoProcessoTransacao(repositorio repositorio.RepositorioTransacao, interfaceProdutor broker.InterfaceProdutor, topico string) *ProcessoTransacao {
 	return &ProcessoTransacao{
 		repositorio: repositorio,
+		Produtor:    interfaceProdutor,
+		Topico:      topico,
 	}
 }
 
@@ -63,6 +68,12 @@ func (p *ProcessoTransacao) transacaoAprovada(entrada EntradaTransacaoDTO, trans
 		MensagemErro: "",
 	}
 
+	err = p.publicar(saida, []byte(transacao.ID))
+
+	if err != nil {
+		return SaidaTransacaoDTO{}, err
+	}
+
 	return saida, nil
 }
 
@@ -85,5 +96,21 @@ func (p *ProcessoTransacao) transacaoRejeitada(transacao *entidade.Transacao, tr
 		MensagemErro: transacaoInvalida.Error(),
 	}
 
+	err = p.publicar(saida, []byte(transacao.ID))
+
+	if err != nil {
+		return SaidaTransacaoDTO{}, err
+	}
+
 	return saida, nil
+}
+
+func (p *ProcessoTransacao) publicar(saida SaidaTransacaoDTO, chave []byte) error {
+	err := p.Produtor.Publicar(saida, chave, p.Topico)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

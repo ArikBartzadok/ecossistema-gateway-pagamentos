@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	mock_broker "github.com/ArikBartzadok/ecossistema-gateway-pagamentos/adaptador/broker/mock"
 	"github.com/ArikBartzadok/ecossistema-gateway-pagamentos/dominio/entidade"
 	mock_repositorio "github.com/ArikBartzadok/ecossistema-gateway-pagamentos/dominio/repositorio/mock"
 	"github.com/golang/mock/gomock"
@@ -42,7 +43,12 @@ func TesteProcessoTransacao_CartaoCreditoInvalido(t *testing.T) {
 		).
 		Return(nil)
 
-	caso_uso := NovoProcessoTransacao(repositorio_mock)
+	topico_mock := "resultado_transacoes"
+	produtor_mock := mock_broker.NewMockInterfaceProdutor(controlador)
+	produtor_mock.EXPECT().
+		Publicar(saida_esperada, []byte(entrada.ID), topico_mock)
+
+	caso_uso := NovoProcessoTransacao(repositorio_mock, produtor_mock, topico_mock)
 	saida, err := caso_uso.Executar(entrada)
 
 	assert.Nil(t, err)
@@ -80,7 +86,12 @@ func TesteProcessoTransacao_ExecutandoTransacaoRejeitada(t *testing.T) {
 		).
 		Return(nil)
 
-	caso_uso := NovoProcessoTransacao(repositorio_mock)
+	topico_mock := "resultado_transacoes"
+	produtor_mock := mock_broker.NewMockInterfaceProdutor(controlador)
+	produtor_mock.EXPECT().
+		Publicar(saida_esperada, []byte(entrada.ID), topico_mock)
+
+	caso_uso := NovoProcessoTransacao(repositorio_mock, produtor_mock, topico_mock)
 	saida, err := caso_uso.Executar(entrada)
 
 	assert.Nil(t, err)
@@ -118,7 +129,12 @@ func TesteProcessoTransacao_ExecutandoTransacaoAprovada(t *testing.T) {
 		).
 		Return(nil)
 
-	caso_uso := NovoProcessoTransacao(repositorio_mock)
+	topico_mock := "resultado_transacoes"
+	produtor_mock := mock_broker.NewMockInterfaceProdutor(controlador)
+	produtor_mock.EXPECT().
+		Publicar(saida_esperada, []byte(entrada.ID), topico_mock)
+
+	caso_uso := NovoProcessoTransacao(repositorio_mock, produtor_mock, topico_mock)
 	saida, err := caso_uso.Executar(entrada)
 
 	assert.Nil(t, err)
